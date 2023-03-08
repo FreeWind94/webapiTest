@@ -23,7 +23,7 @@ public class CharacterController : ControllerBase
         return Ok(await _characterService.GetAllCharacters());
     }
 
-    [HttpGet("{id}y")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
     { 
         return Ok(await _characterService.GetCharacterById(id));
@@ -39,6 +39,17 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
         var response = await _characterService.UpdateCharacter(updatedCharacter);
+        if (response.Data is null) 
+        {
+            return NotFound(response);
+        }
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}y")]
+    public async Task<ActionResult<ServiceResponse<List<Character>>>> DeleteCharacter(int id)
+    { 
+        var response = await _characterService.DeleteCharacter(id);
         if (response.Data is null) 
         {
             return NotFound(response);
