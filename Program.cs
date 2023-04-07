@@ -1,7 +1,3 @@
-global using webapiTest.Models;
-global using webapiTest.Services.CharacterService;
-global using webapiTest.Dtos.Character;
-global using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
