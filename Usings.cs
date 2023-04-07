@@ -3,3 +3,4 @@ global using webapiTest.Services.CharacterService;
 global using webapiTest.Dtos.Character;
 global using AutoMapper;
 global using Microsoft.EntityFrameworkCore;
+global using webapiTest.Data;
