@@ -46,7 +46,7 @@ public class CharacterController : ControllerBase
         return Ok(response);
     }
 
-    [HttpDelete("{id}y")]
+    [HttpDelete("{id}")]
     public async Task<ActionResult<ServiceResponse<List<Character>>>> DeleteCharacter(int id)
     { 
         var response = await _characterService.DeleteCharacter(id);
