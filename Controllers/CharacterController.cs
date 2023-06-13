@@ -25,7 +25,8 @@ public class CharacterController : ControllerBase
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
-    { 
+    {
+        // TODO: Add not found response 
         return Ok(await _characterService.GetCharacterById(id));
     }
 
