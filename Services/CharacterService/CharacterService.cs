@@ -7,15 +7,12 @@ namespace webapiTest.Services.CharacterService;
 
 public class CharacterService : ICharacterService
 {
-    private static List<Character> characters = new List<Character>
-    {
-        new Character(),
-        new Character{ Id = 1, Name = "Sam" }
-    };
     private readonly IMapper _mapper;
+    private readonly DataContext _context;
 
-    public CharacterService(IMapper mapper)
+    public CharacterService(IMapper mapper, DataContext context)
     {
+        _context = context;
         _mapper = mapper;
     }
 
@@ -23,9 +20,10 @@ public class CharacterService : ICharacterService
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
         var character = _mapper.Map<Character>(newCharacter);
-        character.Id = characters.Max(c => c.Id) + 1;
-        characters.Add(character);
-        serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+        _context.Characters.Add(character);
+        await _context.SaveChangesAsync();
+        var dbCaracters = await _context.Characters.ToListAsync();
+        serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
         return serviceResponse;
     }
 
@@ -34,15 +32,17 @@ public class CharacterService : ICharacterService
         var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
         
         try {
-            var character = characters.FirstOrDefault(c => c.Id == id);
+            var character = await _context.Characters.FindAsync(id);
             if (character is null) 
             {
                 throw new Exception($"Character with Id '{id}' not found.");
             }
 
-            characters.Remove(character);
-            
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            _context.Characters.Remove(character);
+            await _context.SaveChangesAsync();
+
+            var dbCaracters = await _context.Characters.ToListAsync();
+            serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
         }
         catch (Exception ex)
         {
@@ -56,15 +56,16 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-        serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+        var dbCaracters = await _context.Characters.ToListAsync();
+        serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
         return serviceResponse;
     }
 
     public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterDto>();
-        var character = characters.FirstOrDefault(c => c.Id == id);
-        serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
+        var dbCharacter = await _context.Characters.FindAsync(id);
+        serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
         return serviceResponse;
     }
 
@@ -73,7 +74,7 @@ public class CharacterService : ICharacterService
         var serviceResponse = new ServiceResponse<GetCharacterDto>();
         
         try {
-            var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+            var character = await _context.Characters.FindAsync(updatedCharacter.Id);
             if (character is null) 
             {
                 throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
@@ -85,6 +86,8 @@ public class CharacterService : ICharacterService
             character.Defence = updatedCharacter.Defence;
             character.Intelligence = updatedCharacter.Intelligence;
             character.Class = updatedCharacter.Class;
+
+            await _context.SaveChangesAsync();
 
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
         }
