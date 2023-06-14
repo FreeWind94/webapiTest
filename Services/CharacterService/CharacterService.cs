@@ -30,10 +30,11 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
     {
         var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-        
-        try {
+
+        try
+        {
             var character = await _context.Characters.FindAsync(id);
-            if (character is null) 
+            if (character is null)
             {
                 throw new Exception($"Character with Id '{id}' not found.");
             }
@@ -64,18 +65,34 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
     {
         var serviceResponse = new ServiceResponse<GetCharacterDto>();
-        var dbCharacter = await _context.Characters.FindAsync(id);
-        serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
+
+        try
+        {
+            var dbCharacter = await _context.Characters.FindAsync(id);
+            if (dbCharacter is null)
+            {
+                throw new Exception($"Character with Id '{id}' not found.");
+            }
+            serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
+
+        }
+        catch (Exception ex)
+        {
+            serviceResponse.Succes = false;
+            serviceResponse.Message = ex.Message;
+        }
+
         return serviceResponse;
     }
 
     public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
         var serviceResponse = new ServiceResponse<GetCharacterDto>();
-        
-        try {
+
+        try
+        {
             var character = await _context.Characters.FindAsync(updatedCharacter.Id);
-            if (character is null) 
+            if (character is null)
             {
                 throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
             }
