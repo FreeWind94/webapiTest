@@ -17,47 +17,48 @@ public class CharacterController : ControllerBase
         _characterService = characterService;
     }
 
+    private ActionResult<ServiceResponse<T>> ToOk<T>(ServiceResponse<T> response) {
+        return response.Match<ActionResult<ServiceResponse<T>>>(r =>
+        {
+            return Ok(r);
+        }, r =>
+        {
+            return NotFound(r);
+        });
+    }
+
     [HttpGet("GetAll")]
     public async Task<ActionResult<ServiceResponse<List<Character>>>> Get()
     {
-        return Ok(await _characterService.GetAllCharacters());
+        var response = await _characterService.GetAllCharacters();
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
     {
         var response = await _characterService.GetCharacterById(id);
-        if (response.Data is null) {
-            return NotFound(response);
-        }
-        return Ok(response);
+        return ToOk(response);
     }
 
     [HttpPost]
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> AddCharacter(AddCharacterDto newCharacter)
     {
-        return Ok(await _characterService.AddCharacter(newCharacter));
+        var response = await _characterService.AddCharacter(newCharacter);
+        return Ok(response);
     }
 
     [HttpPut]
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
         var response = await _characterService.UpdateCharacter(updatedCharacter);
-        if (response.Data is null) 
-        {
-            return NotFound(response);
-        }
-        return Ok(response);
+        return ToOk(response);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ServiceResponse<List<Character>>>> DeleteCharacter(int id)
-    { 
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> DeleteCharacter(int id)
+    {
         var response = await _characterService.DeleteCharacter(id);
-        if (response.Data is null) 
-        {
-            return NotFound(response);
-        }
-        return Ok(response);
+        return ToOk(response);
     }
 }

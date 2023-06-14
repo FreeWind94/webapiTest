@@ -18,102 +18,62 @@ public class CharacterService : ICharacterService
 
     public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
     {
-        var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
         var character = _mapper.Map<Character>(newCharacter);
         _context.Characters.Add(character);
         await _context.SaveChangesAsync();
         var dbCaracters = await _context.Characters.ToListAsync();
-        serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
-        return serviceResponse;
+        return dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
     }
 
     public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
     {
-        var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-
-        try
+        var character = await _context.Characters.FindAsync(id);
+        if (character is null)
         {
-            var character = await _context.Characters.FindAsync(id);
-            if (character is null)
-            {
-                throw new Exception($"Character with Id '{id}' not found.");
-            }
-
-            _context.Characters.Remove(character);
-            await _context.SaveChangesAsync();
-
-            var dbCaracters = await _context.Characters.ToListAsync();
-            serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
-        }
-        catch (Exception ex)
-        {
-            serviceResponse.Succes = false;
-            serviceResponse.Message = ex.Message;
+            return new Exception($"Character with Id '{id}' not found.");
         }
 
-        return serviceResponse;
+        _context.Characters.Remove(character);
+        await _context.SaveChangesAsync();
+
+        var dbCaracters = await _context.Characters.ToListAsync();
+        return dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
     }
 
     public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
     {
-        var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
         var dbCaracters = await _context.Characters.ToListAsync();
-        serviceResponse.Data = dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
-        return serviceResponse;
+        return dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
     }
 
     public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
     {
-        var serviceResponse = new ServiceResponse<GetCharacterDto>();
-
-        try
+        var dbCharacter = await _context.Characters.FindAsync(id);
+        if (dbCharacter is null)
         {
-            var dbCharacter = await _context.Characters.FindAsync(id);
-            if (dbCharacter is null)
-            {
-                throw new Exception($"Character with Id '{id}' not found.");
-            }
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
-
+            return new Exception($"Character with Id '{id}' not found.");
         }
-        catch (Exception ex)
-        {
-            serviceResponse.Succes = false;
-            serviceResponse.Message = ex.Message;
-        }
-
-        return serviceResponse;
+        return _mapper.Map<GetCharacterDto>(dbCharacter);
     }
 
-    public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
+    public async Task<ServiceResponse<List<GetCharacterDto>>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
-        var serviceResponse = new ServiceResponse<GetCharacterDto>();
-
-        try
+        var character = await _context.Characters.FindAsync(updatedCharacter.Id);
+        if (character is null)
         {
-            var character = await _context.Characters.FindAsync(updatedCharacter.Id);
-            if (character is null)
-            {
-                throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
-            }
-
-            character.Name = updatedCharacter.Name;
-            character.HitPoints = updatedCharacter.HitPoints;
-            character.Strength = updatedCharacter.Strength;
-            character.Defence = updatedCharacter.Defence;
-            character.Intelligence = updatedCharacter.Intelligence;
-            character.Class = updatedCharacter.Class;
-
-            await _context.SaveChangesAsync();
-
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
-        }
-        catch (Exception ex)
-        {
-            serviceResponse.Succes = false;
-            serviceResponse.Message = ex.Message;
+            return new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
         }
 
-        return serviceResponse;
+        character.Name = updatedCharacter.Name;
+        character.HitPoints = updatedCharacter.HitPoints;
+        character.Strength = updatedCharacter.Strength;
+        character.Defence = updatedCharacter.Defence;
+        character.Intelligence = updatedCharacter.Intelligence;
+        character.Class = updatedCharacter.Class;
+
+        await _context.SaveChangesAsync();
+
+        var dbCaracters = await _context.Characters.ToListAsync();
+        return dbCaracters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
     }
 }
